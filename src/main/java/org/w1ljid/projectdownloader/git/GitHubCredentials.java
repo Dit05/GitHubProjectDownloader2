@@ -2,6 +2,9 @@ package org.w1ljid.projectdownloader.git;
 
 import java.util.NoSuchElementException;
 import java.util.Scanner;
+
+import org.eclipse.jgit.transport.CredentialsProvider;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.kohsuke.github.GitHubBuilder;
 import org.w1ljid.projectdownloader.util.InScannerSingleton;
 
@@ -21,6 +24,10 @@ public class GitHubCredentials {
 
 	public GitHubBuilder apply(GitHubBuilder builder) {
 		return builder.withOAuthToken(key);
+	}
+
+	public CredentialsProvider toCredentialsProvider() {
+		return new UsernamePasswordCredentialsProvider(key, "");
 	}
 
 
@@ -75,7 +82,7 @@ public class GitHubCredentials {
 		System.out.println("Enter your GitHub credentials for more favorable rate limits.");
 		System.out.println("Leaving the API key key blank will continue without authentication.");
 		System.out.println("(these credentials can also be provided by setting the "
-		+ ENV_KEY + " environment variable.)");
+			+ ENV_KEY + " environment variable.)");
 
 		return prompt();
 	}
