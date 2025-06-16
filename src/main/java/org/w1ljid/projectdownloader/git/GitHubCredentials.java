@@ -79,10 +79,9 @@ public class GitHubCredentials {
 			return creds;
 		}
 
-		System.out.println("Enter your GitHub credentials for more favorable rate limits.");
-		System.out.println("Leaving the API key key blank will continue without authentication.");
-		System.out.println("(these credentials can also be provided by setting the "
-			+ ENV_KEY + " environment variable.)");
+		System.out.println("Enter your GitHub API key for more favorable rate limits. (obtainable at [https://github.com/settings/personal-access-tokens])");
+		System.out.println("Leaving this blank will continue without authentication.");
+		System.out.println("(these credentials can also be provided by setting the " + ENV_KEY + " environment variable.)");
 
 		return prompt();
 	}
