@@ -53,8 +53,8 @@ public class Main {
 	// This catch-all filter, if provided, runs on file contents before category filters.
 	static final FileFilter preFilter = new AndFilter(new SketchyCharactersFilter(), new NotFilter(new KeywordFilter("Test", "junit"))); // Exclude files that seem like unit tests.
 
-	// Stop after this many samples have been found for a category.
-	static final int categoryLimit = 550;
+	// Stop after this many samples have been found for a category. -1 means no limit.
+	static final int categoryLimit = -1;
 
 	// Categories. (filters all found under org.w1ljid.projectdownloader.filters)
 	static final LabeledFilter[] categoryFilters = new LabeledFilter[] {
