@@ -34,8 +34,7 @@ public class GitHubCredentials {
 	/**
 	 * Attempts to retrieve credentials from environment variables.
 	 * 
-	 * @see ENV_USER
-	 * @see ENV_KEY
+	 * @see #ENV_KEY
 	 * @return A new instance, or null if the API key environment variable is empty.
 	 */
 	public static GitHubCredentials acquire() {
