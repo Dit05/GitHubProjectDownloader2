@@ -110,7 +110,7 @@ public class Main {
 
 		for (String url : processTheseFirst) {
 			System.out.println("Now processing: \"" + url + "\" (time: " + formatTime(Instant.now()) + ")");
-			processRepository(url, creds, fileLib);
+			processRepository(url, creds, fileLib, url);
 			System.out.println("\n---\n");
 		}
 
@@ -134,7 +134,7 @@ public class Main {
 				continue;
 			}
 
-			processRepository(repo.getHttpTransportUrl(), creds, fileLib);
+			processRepository(repo.getHttpTransportUrl(), creds, fileLib, repo.getFullName());
 			System.out.println("\n---\n");
 		}
 
@@ -199,7 +199,7 @@ public class Main {
 		return null;
 	}
 
-	static int processRepository(String remoteUrl, GitHubCredentials creds, FileLibrary fileLib) throws Exception {
+	static int processRepository(String remoteUrl, GitHubCredentials creds, FileLibrary fileLib, String labelPrefix) throws Exception {
 
 		CredentialsProvider credentialsProvider = creds != null ? creds.toCredentialsProvider() : null; // No credentials for public repo
 
@@ -274,7 +274,8 @@ public class Main {
 					bytesFound += out.size();
 
 					if (reportIndividualFiles) {
-						String storedPath = fileLib.store(category, fileLib.suggestLabel(filePathString), out, downloadedFileExtension);
+						String label = labelPrefix + " " + fileLib.suggestLabel(filePathString);
+						String storedPath = fileLib.store(category, label, out, downloadedFileExtension);
 						System.out.println("Found \"" + filePathString + "\" -> " + storedPath + " (" + formatBytes(out.size()) + ")");
 					}
 				}

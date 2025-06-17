@@ -13,7 +13,7 @@ public class FileLibrary {
 
 	private static final char SEPARATOR = '-';
 	private static final String LABEL_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789";
-	private static final String UNDERSCORIFY_CHARS = " \n-";
+	private static final String UNDERSCORIFY_CHARS = " \n-/\\";
 	private static final String SALT_CHARS = "0123456789abcdef";
 
 	private final Random rand = new Random();
@@ -43,7 +43,7 @@ public class FileLibrary {
 	private static String normalizeLabel(String label) {
 		StringBuilder sb = new StringBuilder();
 
-		for (int i = 0; i < label.length(); i++) {
+		for (int i = 0; i < Math.min(256, label.length()); i++) {
 			char ch = label.charAt(i);
 			if (UNDERSCORIFY_CHARS.indexOf(ch) >= 0) {
 				sb.append('_');
