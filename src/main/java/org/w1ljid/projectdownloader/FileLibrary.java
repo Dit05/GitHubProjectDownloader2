@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Random;
+import java.util.zip.CRC32;
 
 
 public class FileLibrary {
@@ -40,7 +41,7 @@ public class FileLibrary {
 	}
 
 
-	private static String normalizeLabel(String label) {
+	private static String cleanLabel(String label) {
 		StringBuilder sb = new StringBuilder();
 
 		for (int i = 0; i < Math.min(256, label.length()); i++) {
@@ -82,7 +83,7 @@ public class FileLibrary {
 	}
 
 	public String store(String category, String label, ByteArrayOutputStream bytes, String fileExtension) throws IOException {
-		label = normalizeLabel(label);
+		label = cleanLabel(label);
 
 		File categoryDir = new File(root, category);
 		categoryDir.mkdirs();
@@ -108,6 +109,23 @@ public class FileLibrary {
 		}
 
 		return file.getPath();
+	}
+
+	public File getCustomLocation(String key, String extension) {
+		StringBuilder sb = new StringBuilder();
+
+		sb.append(cleanLabel(key));
+		sb.append(SEPARATOR);
+
+		CRC32 crc = new CRC32();
+		crc.update(key.getBytes());
+
+		sb.append(Long.toHexString(crc.getValue()));
+		
+		sb.append('.');
+		sb.append(extension);
+
+		return new File(root, sb.toString());
 	}
 
 }

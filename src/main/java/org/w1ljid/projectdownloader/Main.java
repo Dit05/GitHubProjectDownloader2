@@ -40,10 +40,12 @@ public class Main {
 	// --- Configuration ---
 	static final String outputDirectory = "downloaded"; // Absolute or relative directory where downloaded files will go. Note: this is not cleared between runs!
 	static final String downloadedFileExtension = ".java"; // Appended to downloaded file names.
+	static final String ignoreListIdentifier = "ignored repositories"; // File used to keep track of already visited repositories.
+	static final boolean autoIgnoreVisited = true;
 
 	// Repositories listed here will be visited before searching all of GitHub.
 	static final String[] processTheseFirst = new String[] {
-		"https://github.com/Dit05/GitHubProjectDownloader2"
+		//"https://github.com/Dit05/GitHubProjectDownloader2"
 	};
 
 
@@ -82,65 +84,85 @@ public class Main {
 	public static void main(String[] args) throws GitAPIException, IOException, InterruptedException, Exception {
 
 		FileLibrary fileLib = new FileLibrary(outputDirectory);
-		System.out.println("Created file library at \"" + fileLib.getCanonicalRoot() + "\"");
+		System.out.println("File library is at \"" + fileLib.getCanonicalRoot() + "\"");
 
-		GitHubCredentials creds = GitHubCredentials.acquireOrPrompt();
-		if (creds == null) System.out.println("No credentials provided.");
+		IgnoreList ignoreList = null;
+		if (ignoreListIdentifier != null) {
+			ignoreList = new IgnoreList(fileLib.getCustomLocation(ignoreListIdentifier, "txt"));
+			ignoreList.initialize();
+			System.out.println("Ignore list contains " + ignoreList.size() + " repositor" + (ignoreList.size() == 1 ? "y" : "ies"));
+		}
 
-		GitHub github;
 		try {
-			github = connectToGitHub(creds);
-		} catch (java.io.IOException ioe) {
-			Throwable cause = ioe.getCause();
-			if (
-				cause != null
-					&& cause instanceof org.kohsuke.github.HttpException
-					&& ((org.kohsuke.github.HttpException) cause).getMessage().contains("Bad credentials")
-			) {
-				System.err.println("GitHub says invalid credentials. Try generating a valid key for your account at [https://github.com/settings/personal-access-tokens].");
-				return;
-			} else {
-				throw ioe;
+			GitHubCredentials creds = GitHubCredentials.acquireOrPrompt();
+			if (creds == null) System.out.println("No credentials provided.");
+
+			GitHub github;
+			try {
+				github = connectToGitHub(creds);
+			} catch (java.io.IOException ioe) {
+				Throwable cause = ioe.getCause();
+				if (
+					cause != null
+						&& cause instanceof org.kohsuke.github.HttpException
+						&& ((org.kohsuke.github.HttpException) cause).getMessage().contains("Bad credentials")
+				) {
+					System.err.println("GitHub says invalid credentials. Try generating a valid key for your account at [https://github.com/settings/personal-access-tokens].");
+					return;
+				} else {
+					throw ioe;
+				}
 			}
-		}
-		System.out.println("Succesfully connected to GitHub!");
+			System.out.println("Succesfully connected to GitHub!");
 
-		Instant started = Instant.now();
-		System.out.println("### Started at: " + formatTime(started));
+			Instant started = Instant.now();
+			System.out.println("### Started at: " + formatTime(started));
 
-		for (String url : processTheseFirst) {
-			System.out.println("Now processing: \"" + url + "\" (time: " + formatTime(Instant.now()) + ")");
-			processRepository(url, creds, fileLib, url);
-			System.out.println("\n---\n");
-		}
+			for (String url : processTheseFirst) {
+				System.out.println("Now processing: \"" + url + "\" (time: " + formatTime(Instant.now()) + ")");
+				processRepository(url, creds, fileLib, url);
+				System.out.println("\n---\n");
+			}
 
 
-		int reposLeft = repositoryLimit;
-		if (repositoryLimit >= 0) {
-			System.out.println("Processing at most " + reposLeft + " repositories");
-		}
-
-		for (GHRepository repo : github.searchRepositories().language("java").list()) {
+			int reposLeft = repositoryLimit;
 			if (repositoryLimit >= 0) {
-				System.out.println("### " + reposLeft + " left");
-				if (reposLeft-- <= 0) break;
+				System.out.println("Processing at most " + reposLeft + " repositories");
 			}
 
-			long repoSize = repo.getSize() * U_KiB;
-			System.out.println("Now processing: \"" + repo.getFullName() + "\" (size: " + formatBytes(repoSize) + ", time: " + formatTime(Instant.now()) + ")");
+			for (GHRepository repo : github.searchRepositories().language("java").list()) {
+				String repoName = repo.getFullName(); // For example, Dit05/GitHubProjectDownloader2 (not an URL)
+				if (ignoreList != null && ignoreList.isIgnored(repoName)) {
+					System.out.println("Ignoring \"" + repoName + "\"");
+					continue;
+				}
 
-			if (repoSize > maxRepositorySize) {
-				System.out.println("Too big, skipping.");
-				continue;
+				if (repositoryLimit >= 0) {
+					System.out.println("### " + reposLeft + " left");
+					if (reposLeft-- <= 0) break;
+				}
+
+				long repoSize = repo.getSize() * U_KiB;
+				System.out.println("Now processing: \"" + repoName + "\" (size: " + formatBytes(repoSize) + ", time: " + formatTime(Instant.now()) + ")");
+
+				if (repoSize > maxRepositorySize) {
+					System.out.println("Too big, skipping.");
+					continue;
+				}
+
+				processRepository(repo.getHttpTransportUrl(), creds, fileLib, repoName);
+				ignoreList.ignore(repoName);
+				ignoreList.flush();
+				System.out.println("\n---\n");
 			}
 
-			processRepository(repo.getHttpTransportUrl(), creds, fileLib, repo.getFullName());
-			System.out.println("\n---\n");
+			Instant finished = Instant.now();
+			System.out.println("### Finished at: " + formatTime(finished) + " (took " + formatTimeDifference(started, finished) + ")");
+		} finally {
+			if (ignoreList != null) {
+				ignoreList.close();
+			}
 		}
-
-
-		Instant finished = Instant.now();
-		System.out.println("### Finished at: " + formatTime(finished) + " (took " + formatTimeDifference(started, finished) + ")");
 	}
 
 
