@@ -56,15 +56,45 @@ public class Main {
 	static final FileFilter preFilter = new AndFilter(new SketchyCharactersFilter(), new NotFilter(new KeywordFilter("Test", "junit"))); // Exclude files that seem like unit tests.
 
 	// Stop after this many samples have been found for a category. -1 means no limit.
-	static final int categoryLimit = -1;
+	static final int categoryLimit = -1; // to be reimplemented
 
 	// Categories. (filters all found under org.w1ljid.projectdownloader.filters)
+	// Regex Reminder:
+	// [A-z, ]*: match zero or more of: any letter or a space
+	// \s+: match 1 or more whitespace characters
+	// \\)?: match 0 or 1 closing parentheses
 	static final LabeledFilter[] categoryFilters = new LabeledFilter[] {
-		new LabeledFilter(new LimitedTotalMatchesFilter(new RegexFilter("class [A-z]*Singleton"), categoryLimit), "Singleton"),
-		new LabeledFilter(new LimitedTotalMatchesFilter(new RegexFilter("class [A-z]*Adapter", "class [A-z]*2[A-z]+", "class [A-z]+To[A-Z][A-z]*"), categoryLimit), "Adapter"),
-		new LabeledFilter(new LimitedTotalMatchesFilter(new RegexFilter("class [A-z]*Factory"), categoryLimit), "AbstractFactory"),
-		new LabeledFilter(new LimitedTotalMatchesFilter(new RegexFilter("class [A-z]*Builder"), categoryLimit), "Builder"),
-		new LabeledFilter(new LimitedTotalMatchesFilter(new RegexFilter("class [A-z]*Command[A-z]*"), categoryLimit), "Command"),
+		new LabeledFilter(new RegexFilter(
+			"class\\s+[A-z]*Adapter", // class PipeAdapter
+			"class\\s+[A-z]*2[A-z]+", // class M2F
+			"class\\s+[A-z]+To[A-Z][A-z]*"), // class ApplesToOranges
+			"Adapter"),
+
+		new LabeledFilter(new AndFilter(
+			new RegexFilter("[B,b]ridge"),
+			new KeywordFilter("extends"),
+			new KeywordFilter("implements")),
+			"Bridge"),
+
+		new LabeledFilter(new RegexFilter("class\\s+[A-z]*Builder"), "Builder"),
+
+		new LabeledFilter(new RegexFilter("class\\s+[A-z]*Decorator"), "Decorator"),
+
+		new LabeledFilter(new RegexFilter("class\\s+Null[A-z]+\\s+extends\\s+", "class\\s+Null[A-z]+\\s+implements\\s+"), "Null Object"),
+
+		new LabeledFilter(new RegexFilter("class\\s+[A-z]*State", "interface\\s+[A-z]*State"), "State"),
+
+		new LabeledFilter(new RegexFilter(
+			"[s,e]\\s+[A-z]*Strategy\\s+[i,e]", // clasS or interfacE ending in ...Strategy
+			"[s,e]\\s+[A-z]*Behaviou?r\\s+[i,e]"), // or the same, but ending in ...Behavio(u)r
+			"Strategy"),
+
+		new LabeledFilter(new AndFilter(
+			new RegexFilter("abstract\\s+[A-z]+\\s+[A-z]+\\("), // abstract method
+			new RegexFilter("public\\s+[A-z, ]+\\s+[A-z]+\\("), // public method
+			new RegexFilter("final\\s+[A-z, ]+\\s+[A-z]+\\("), // final method
+			new RegexFilter("abstract\\s+class", "interface\\s+") // abstract class or interface
+		), "Template Method") // not much to go off of for this one...
 	};
 
 	// Whether to print a line for every file found.
