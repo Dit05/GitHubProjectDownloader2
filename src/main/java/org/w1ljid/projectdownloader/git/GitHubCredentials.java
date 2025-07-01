@@ -8,6 +8,9 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.kohsuke.github.GitHubBuilder;
 import org.w1ljid.projectdownloader.util.InScannerSingleton;
 
+/**
+ * Stores credentials needed to authenticate with GitHub's API.
+ */
 public class GitHubCredentials {
 
 	public static final String ENV_KEY = "PROJECTDOWNLOADER_GITHUB_KEY";

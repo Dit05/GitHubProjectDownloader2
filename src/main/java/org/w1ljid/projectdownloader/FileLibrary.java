@@ -10,6 +10,9 @@ import java.util.Random;
 import java.util.zip.CRC32;
 
 
+/**
+ * Manages files with unique names, categorized into subdirectories.
+ */
 public class FileLibrary {
 
 	private static final char SEPARATOR = '-';
@@ -82,6 +85,9 @@ public class FileLibrary {
 		return name;
 	}
 
+	/**
+	 * Reads all of the passed-in byte stream, and writes it to a file in the category's subdirectory, with a name similar to the label given.
+	 */
 	public String store(String category, String label, ByteArrayOutputStream bytes, String fileExtension) throws IOException {
 		label = cleanLabel(label);
 
@@ -111,6 +117,9 @@ public class FileLibrary {
 		return file.getPath();
 	}
 
+	/**
+	 * Retrieves the location of a persistent file identified by an unique key and extension. The same string will always get the same file. 
+	 */
 	public File getCustomLocation(String key, String extension) {
 		StringBuilder sb = new StringBuilder();
 

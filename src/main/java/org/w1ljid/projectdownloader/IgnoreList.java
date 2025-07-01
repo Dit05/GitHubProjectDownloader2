@@ -8,6 +8,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashSet;
 
+/**
+ * Manages a set of strings backed by a file. Does not handle line breaks, strings containing such control characters will cause erroneous behavior.
+ */
 public class IgnoreList implements AutoCloseable {
 
 	private final File file;

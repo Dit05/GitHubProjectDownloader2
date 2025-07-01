@@ -2,6 +2,9 @@ package org.w1ljid.projectdownloader.util;
 
 import java.util.Scanner;
 
+/**
+ * A singleton for having a Scanner of System.in.
+ */
 public class InScannerSingleton {
 
 	private static Scanner scanner;
